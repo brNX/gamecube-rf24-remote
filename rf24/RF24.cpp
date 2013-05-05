@@ -11,6 +11,7 @@
 #include "RF24.h"
 extern "C"{
 #include "spi.h"
+#include "timer2.h"
 }
 #define LOW 0
 #define HIGH 1
@@ -23,21 +24,20 @@ void RF24::csn(int mode)
   // If we assume 2Mbs data rate and 16Mhz clock, a
   // divider of 4 is the minimum we want.
   // CLK:BUS 8Mhz:2Mhz, 16Mhz:4Mhz, or 20Mhz:5Mhz
-/*#ifdef ARDUINO
-  SPI.setBitOrder(MSBFIRST);
-  SPI.setDataMode(SPI_MODE0);
-  SPI.setClockDivider(SPI_CLOCK_DIV4);
-#endif*/
-	//TODO: change to avr gcc
-    //digitalWrite(csn_pin,mode);
+	if (mode)
+		spi_cs_high();
+	else
+		spi_cs_low();
 }
 
 /****************************************************************************/
 
 void RF24::ce(int level)
 {
-   //TODO: change to avr gcc
-  //digitalWrite(ce_pin,level);
+	if(level)
+		spi_ce_high();
+	else
+		spi_ce_low();
 }
 
 /****************************************************************************/
@@ -340,12 +340,7 @@ void RF24::printDetails(void)
 void RF24::begin(void)
 {
   // Initialize pins
-  //TODO: initialize spi
-  //pinMode(ce_pin,OUTPUT);
-  //pinMode(csn_pin,OUTPUT);
-
-  // Initialize SPI bus
-  //SPI.begin();
+  spi_init(10000000,8);
 
   ce(LOW);
   csn(HIGH);
@@ -466,15 +461,16 @@ bool RF24::write( const void* buf, uint8_t len )
   // Monitor the send
   uint8_t observe_tx;
   uint8_t status;
-  //TODO: use timer
-  //uint32_t sent_at = millis();
-  const uint32_t timeout = 500; //ms to wait for timeout
+  const uint16_t timeout = 500; //ms to wait for timeout
+  timer2_start();
   do
   {
     status = read_register(OBSERVE_TX,&observe_tx,1);
     IF_SERIAL_DEBUG(Serial.print(observe_tx,HEX));
   }
-  while( ! ( status & ( _BV(TX_DS) | _BV(MAX_RT) ) ) /*&& ( millis() - sent_at < timeout ) TODO: use timer*/);
+  while( ! ( status & ( _BV(TX_DS) | _BV(MAX_RT) ) ) && ( timer2_gettick() < timeout ));
+
+  timer2_stop();
 
   // The part above is what you could recreate with your own interrupt handler,
   // and then call this when you got an interrupt

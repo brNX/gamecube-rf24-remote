@@ -15,8 +15,8 @@ extern "C" {
 
 #include "report.h"
 #include "n64gc.h"
-#include "psx.h"
 #include "USART_Int_atmega328.h"
+#include "rf24/timer2.h"
 
 }
 
@@ -32,8 +32,7 @@ void ReadController(){
 	reportBuffer.rx = reportBuffer.ry = 0;
 	reportBuffer.hat = -1;
 
-	//ReadPSX(&reportBuffer);
-	ReadN64GC(&reportBuffer);
+    ReadN64GC(&reportBuffer);
 }
 
 
@@ -41,16 +40,14 @@ void HardwareInit(){
 
 	USART_Init(16); //115200 8N1 (16MHz crystal)
 
+	timer2_setup();
 
 	// See schmatic for connections
-	DDRD	= 0b00000000;
-	PORTD	= 0b11111001;	// All inputs with pull-ups except USB D+/D-
+	DDRD	= 0;
+	PORTD	= 0xFF;	// All inputs with pull-ups
 
-	DDRB	= 0b00000000;
-	PORTB	= 0b00111111;	// All inputs with pull-ups except xtal
-
-	DDRC	= 0b00000000;
-	PORTC	= 0b00111111;	// All inputs except unused bits
+	DDRB	&= ~(1<<PB0);
+	PORTB	|=  (1<<PB0);	// PB0 input with pull-up
 
 	sei();
 }
