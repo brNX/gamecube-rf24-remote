@@ -89,10 +89,19 @@ int main (){
 
 	while(1){
 
+		char temp[100];
+
 		ReadController();
 
+
+		print_string("controller:\n");
+		sprintf(temp,"x: %d y: %d , rx: %d , ry : %d , b1: %d , b2:%d  \n",(int8_t)reportBuffer.x,(int8_t)reportBuffer.y,(int8_t)reportBuffer.rx,(int8_t)reportBuffer.ry,reportBuffer.b1,reportBuffer.b2);
+		print_string(temp);
+
+
+		print_string("\n\n");
 		// First, stop listening so we can talk.
-		radio.stopListening();
+		/*radio.stopListening();
 
 
 		pa++;
@@ -132,9 +141,9 @@ int main (){
 	      sprintf(debug,"Got response %lu\n\r",got_time);
 	      print_string(debug);
 	    }
-	    timer2_stop();
+	    timer2_stop();*/
 
-		_delay_ms(1000);
+		_delay_ms(100);
 	}
 
 	return 0;
