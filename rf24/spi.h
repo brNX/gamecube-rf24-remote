@@ -15,7 +15,8 @@
 #include <util/delay.h>     /* for _delay_ms() */
 
 void spi_init(unsigned long bitrate,unsigned long datawidth);
-uint8_t spi_transferByte(uint8_t data);
+
+uint8_t spi_transferByte(uint8_t _data);
 
 void spi_cs_low();
 void spi_cs_high();

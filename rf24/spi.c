@@ -13,6 +13,9 @@
 #define CE_PIN_PORT PORTB
 #define CE_PIN PB1
 
+#define SCK PB5
+#define MOSI PB3
+
   // When the SS pin is set as OUTPUT, it can be used as
   // a general purpose output port (it doesn't influence
   // SPI operations).
@@ -21,11 +24,15 @@
 
 void spi_init(unsigned long bitrate,unsigned long datawidth){
 
+	spi_cs_high();
+	DDRB |=  (1<<PB2);
+
+
 	// Enable SPI, Master, set clock rate fck/2 (maximum)
 	SPCR = (1<<SPE)|(1<<MSTR);
 	SPSR = (1<<SPI2X);
 
-	DDRB 	|=  (1<<PB1) | (1<<PB2); // PB1(CE) and PB2(CS) as output
+	DDRB 	|=  (1<<PB1) | (1<<SCK) | (1<<MOSI); // PB1(CE) ,  SCK and MOSI as output
 }
 
 void spi_cs_low()
@@ -49,13 +56,10 @@ void spi_ce_high()
 }
 
 
-uint8_t spi_transferByte(uint8_t data){
+uint8_t spi_transferByte(uint8_t _data){
 
-	// Start transmission (MOSI)
-	SPDR = data;                         // SPDR – SPI Data Register  pg 176
-
-	// Wait for transmission complete
-	while(!(SPSR & (1<<SPIF)));
-
-	return (SPDR);
+	  SPDR = _data;
+	  while (!(SPSR & _BV(SPIF)))
+	    ;
+	  return SPDR;
 }

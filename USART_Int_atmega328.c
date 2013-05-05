@@ -10,6 +10,9 @@
 #include "USART_Int_atmega328.h"
 
 
+/********************************************************************************
+Global Variables
+********************************************************************************/
 
 void USART_Init(uint16_t ubrr)
 {
@@ -25,7 +28,6 @@ void USART_Init(uint16_t ubrr)
 >> 1 StopBit
 	 */
 
-
 	/* Set frame format: 8data, 1stop bit */
 	UCSR0C = (1<<UCSZ01)| (1<<UCSZ00);
 
@@ -34,9 +36,6 @@ void USART_Init(uint16_t ubrr)
 
 	//Enable double transmission speed
 	UCSR0A |= (1<<U2X0);
-
-	//enable receive interrupt
-	UCSR0B |= (1 << RXCIE0 );
 
 }
 
@@ -59,18 +58,14 @@ char USARTReadChar_blocking()
 void USARTWriteChar(char data)
 {
    //Wait untill the transmitter is ready
-   while(!(UCSR0A & (1<<UDRE0)))
-   {
-      //Do nothing
-   }
+   while(!(UCSR0A & (1<<UDRE0)));
 
    //Now write the data to USART buffer
-
    UDR0=data;
 }
 
 
-void print_string(const unsigned char *data) {
+void print_string(const char *data) {
 	while (*data != '\0') {
 		USARTWriteChar(*data++);
 	}

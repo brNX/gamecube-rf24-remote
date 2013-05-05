@@ -14,6 +14,9 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <avr/pgmspace.h>
+#include <avr/pgmspace.h>
+#define PRIPSTR "%S"
 
 #undef SERIAL_DEBUG
 #ifdef SERIAL_DEBUG
@@ -24,17 +27,14 @@
 
 // Avoid spurious warnings
 #if 1
-#if ! defined( NATIVE ) && defined( ARDUINO )
 #undef PROGMEM
 #define PROGMEM __attribute__(( section(".progmem.data") ))
 #undef PSTR
 #define PSTR(s) (__extension__({static const char __c[] PROGMEM = (s); &__c[0];}))
 #endif
-#endif
 
 
-#include <avr/pgmspace.h>
-#define PRIPSTR "%S"
+
 
 
 //typedef char const char;
