@@ -10,6 +10,8 @@
 #include <util/delay.h>     /* for _delay_ms() */
 #include <stdio.h>
 #include <stdbool.h>
+#include <avr/sleep.h>
+#include <avr/power.h>
 
 extern "C" {
 
@@ -24,8 +26,16 @@ extern "C" {
 
 static	report_t reportBuffer;
 
-volatile char rbuffer[10];
-volatile unsigned int tyup=0;
+//
+// Sleep declarations
+//
+
+typedef enum { wdt_16ms = 0, wdt_32ms, wdt_64ms, wdt_128ms, wdt_250ms, wdt_500ms, wdt_1s, wdt_2s, wdt_4s, wdt_8s } wdt_prescalar_e;
+
+void setup_watchdog(uint8_t prescalar);
+void do_sleep(void);
+
+
 
 void ReadController(){
 	reportBuffer.y = reportBuffer.x = reportBuffer.b1 = reportBuffer.b2 = 0;
@@ -38,7 +48,7 @@ void ReadController(){
 
 void HardwareInit(){
 
-	USART_Init(16); //115200 8N1 (16MHz crystal)
+	USART_Init(1); //(16)115200 8N1 (16MHz crystal)
 
 	timer2_setup();
 
@@ -49,8 +59,13 @@ void HardwareInit(){
 	DDRB	&= ~(1<<PB0);
 	PORTB	|=  (1<<PB0);	// PB0 input with pull-up
 
+	//status led
+	DDRC	|= (1<<PC0);
+
 	sei();
 }
+
+
 
 
 int main (){
@@ -62,6 +77,8 @@ int main (){
 
 	// Radio pipe addresses for the 2 nodes to communicate.
 	const uint64_t pipes[2] = { 0xF0F0F0F0E1LL, 0xF0F0F0F0D2LL };
+
+	setup_watchdog(wdt_16ms);
 
 	print_string("main\n");
 
@@ -85,35 +102,30 @@ int main (){
 
     radio.startListening();
 
+    radio.stopListening();
+
     unsigned long  pa = 0;
 
 	while(1){
 
-		char temp[100];
+		PORTC |= (1<<PC0);
+
+     	char temp[100];
 
 		ReadController();
 
-
-		print_string("controller:\n");
-		sprintf(temp,"x: %d y: %d , rx: %d , ry : %d , b1: %d , b2:%d  \n",(int8_t)reportBuffer.x,(int8_t)reportBuffer.y,(int8_t)reportBuffer.rx,(int8_t)reportBuffer.ry,reportBuffer.b1,reportBuffer.b2);
-		print_string(temp);
+		//sprintf(temp,"x:%d y:%d rx:%d ry:%d b1:%d b2:%d\n",(int8_t)reportBuffer.x,(int8_t)reportBuffer.y,(int8_t)reportBuffer.rx,(int8_t)reportBuffer.ry,reportBuffer.b1,reportBuffer.b2);
+		//print_string(temp);
 
 
-		print_string("\n\n");
-		// First, stop listening so we can talk.
-		/*radio.stopListening();
 
-
-		pa++;
-		bool ok = radio.write( &pa, sizeof(unsigned long) );
+        bool ok = radio.write( &reportBuffer, sizeof(report_t) );
 
 		if (ok){
-			print_string("pa sent\n");
 		}
 		else{
 			print_string("pa error\n");
 		}
-
 
 		radio.startListening();
 
@@ -137,14 +149,52 @@ int main (){
 	      radio.read( &got_time, sizeof(unsigned long) );
 
 	      // Spew it
-	      char debug[40];
-	      sprintf(debug,"Got response %lu\n\r",got_time);
-	      print_string(debug);
+	      //print_string("o\n");
 	    }
-	    timer2_stop();*/
+	    timer2_stop();
 
-		_delay_ms(100);
+	    radio.stopListening();
+
+	    PORTC &= ~(1<<PC0);
+
+	    do_sleep();
+
 	}
 
 	return 0;
+}
+
+
+//
+// Sleep helpers
+//
+
+// 0=16ms, 1=32ms,2=64ms,3=125ms,4=250ms,5=500ms
+// 6=1 sec,7=2 sec, 8=4 sec, 9= 8sec
+
+void setup_watchdog(uint8_t prescalar)
+{
+  prescalar = min(9,prescalar);
+  uint8_t wdtcsr = prescalar & 7;
+  if ( prescalar & 8 )
+    wdtcsr |= _BV(WDP3);
+
+  MCUSR &= ~_BV(WDRF);
+  WDTCSR = _BV(WDCE) | _BV(WDE);
+  WDTCSR = _BV(WDCE) | wdtcsr | _BV(WDIE);
+}
+
+ISR(WDT_vect)
+{
+  ;
+}
+
+void do_sleep(void)
+{
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN); // sleep mode is set here
+  sleep_enable();
+
+  sleep_mode();                        // System sleeps here
+
+  sleep_disable();                     // System continues execution here when watchdog timed out
 }
