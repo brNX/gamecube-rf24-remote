@@ -32,7 +32,7 @@
 								<option id="de.innot.avreclipse.compiler.option.optimize.1376022828" name="Optimization Level" superClass="de.innot.avreclipse.compiler.option.optimize" value="de.innot.avreclipse.compiler.optimize.two" valueType="enumerated"/>
 								<option id="de.innot.avreclipse.compiler.option.optimize.other.1036355917" name="Other Optimization Flags" superClass="de.innot.avreclipse.compiler.option.optimize.other" value="-ffunction-sections -fdata-sections" valueType="string"/>
 								<option id="de.innot.avreclipse.compiler.option.def.496890536" name="Define Syms (-D)" superClass="de.innot.avreclipse.compiler.option.def"/>
-								<option id="de.innot.avreclipse.compiler.option.language.uchar.122622670" superClass="de.innot.avreclipse.compiler.option.language.uchar" value="false" valueType="boolean"/>
+								<option id="de.innot.avreclipse.compiler.option.language.uchar.122622670" name="char is unsigned (-funsigned-char)" superClass="de.innot.avreclipse.compiler.option.language.uchar" value="false" valueType="boolean"/>
 								<inputType id="de.innot.avreclipse.compiler.winavr.input.1612375925" name="C Source Files" superClass="de.innot.avreclipse.compiler.winavr.input"/>
 							</tool>
 							<tool id="de.innot.avreclipse.tool.cppcompiler.app.release.1265484000" name="AVR C++ Compiler" superClass="de.innot.avreclipse.tool.cppcompiler.app.release">
@@ -40,7 +40,7 @@
 								<option id="de.innot.avreclipse.cppcompiler.option.optimize.299068511" name="Optimization Level" superClass="de.innot.avreclipse.cppcompiler.option.optimize" value="de.innot.avreclipse.cppcompiler.optimize.two" valueType="enumerated"/>
 								<option id="de.innot.avreclipse.cppcompiler.option.optimize.other.1644833546" name="Other Optimization Flags" superClass="de.innot.avreclipse.cppcompiler.option.optimize.other" value="-ffunction-sections -fdata-sections" valueType="string"/>
 								<option id="de.innot.avreclipse.cppcompiler.option.def.652262739" name="Define Syms (-D)" superClass="de.innot.avreclipse.cppcompiler.option.def"/>
-								<option id="de.innot.avreclipse.cppcompiler.option.language.uchar.1176648254" superClass="de.innot.avreclipse.cppcompiler.option.language.uchar" value="false" valueType="boolean"/>
+								<option id="de.innot.avreclipse.cppcompiler.option.language.uchar.1176648254" name="char is unsigned (-funsigned-char)" superClass="de.innot.avreclipse.cppcompiler.option.language.uchar" value="false" valueType="boolean"/>
 								<inputType id="de.innot.avreclipse.cppcompiler.input.569759212" superClass="de.innot.avreclipse.cppcompiler.input"/>
 							</tool>
 							<tool id="de.innot.avreclipse.tool.linker.winavr.app.release.106124472" name="AVR C Linker" superClass="de.innot.avreclipse.tool.linker.winavr.app.release"/>
