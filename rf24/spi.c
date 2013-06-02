@@ -8,10 +8,10 @@
 #include "spi.h"
 
 #define CS_PIN_PORT PORTB
-#define CS_PIN PB2
+#define CS_PIN PB1
 
 #define CE_PIN_PORT PORTB
-#define CE_PIN PB1
+#define CE_PIN PB2
 
 #define SCK PB5
 #define MOSI PB3
