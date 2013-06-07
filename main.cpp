@@ -250,6 +250,12 @@ void calibrate()
 	PORTD &= ~(1 << LED1);
 }
 
+inline char clamp(char x, char min, char max)
+{
+    return x < min ? min : (x > max ? max : x);
+}
+
+
 inline void convertAxes()
 {
 	//DEADZONE check
@@ -271,11 +277,7 @@ inline void convertAxes()
 
 		if (reportBuffer.x !=0){
 			//clamp variable
-			if (reportBuffer.x>maxx){
-				reportBuffer.x=maxx;
-			}else if (reportBuffer.x<minx){
-				reportBuffer.x=minx;
-			}
+			reportBuffer.x = clamp(reportBuffer.x,minx,maxx);
 			//convert to range
 			if (reportBuffer.x > 0){
 				reportBuffer.x = (char) (map(reportBuffer.x, 1, maxx, 1, 127));
@@ -286,11 +288,8 @@ inline void convertAxes()
 
 		if (reportBuffer.y != 0){
 			//clamp variable
-			if (reportBuffer.y>maxy){
-				reportBuffer.y=maxy;
-			}else if (reportBuffer.y<miny){
-				reportBuffer.y=miny;
-			}
+			reportBuffer.y= clamp(reportBuffer.y,miny,maxy);
+
 			//convert to range
 			if (reportBuffer.y > 0){
 				reportBuffer.y = (char) (map(reportBuffer.y, 1, maxy, 1, 127));
@@ -300,13 +299,9 @@ inline void convertAxes()
 		}
 
 		if (reportBuffer.rx != 0){
-
 			//clamp variable
-			if (reportBuffer.rx>maxrx){
-				reportBuffer.rx=maxrx;
-			}else if (reportBuffer.rx<minrx){
-				reportBuffer.rx=minrx;
-			}
+			reportBuffer.rx = clamp(reportBuffer.rx,minrx,maxrx);
+
 			//convert to range
 			if (reportBuffer.rx > 0){
 				reportBuffer.rx = (char) (map(reportBuffer.rx, 1, maxrx, 1, 127));
@@ -317,11 +312,8 @@ inline void convertAxes()
 
 		if (reportBuffer.ry != 0){
 			//clamp variable
-			if (reportBuffer.ry>maxry){
-				reportBuffer.ry=maxry;
-			} else 	if (reportBuffer.ry<minry){
-				reportBuffer.ry=minry;
-			}
+			reportBuffer.ry = clamp(reportBuffer.ry,minry,maxry);
+
 			//convert to range
 			if (reportBuffer.ry > 0){
 				reportBuffer.ry = (char) (map(reportBuffer.ry, 1, maxry, 1, 127));
