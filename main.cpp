@@ -118,13 +118,13 @@ int main (){
 			calibrate();
 		}
 
-		counter=(counter+1)%10;
+		counter=(counter+1)%20;
 		sendData(counter==0,radio);
 
-		//never reached
+
 		do_sleep();
 	}
-
+	//never reached
 	return 0;
 }
 
@@ -195,7 +195,7 @@ void HardwareInit(){
 	sei();
 }
 
- void calibrate()
+void calibrate()
 {
 
 #ifdef DEBUG
@@ -253,56 +253,83 @@ void HardwareInit(){
 inline void convertAxes()
 {
 	//DEADZONE check
-	if (reportBuffer.x >= -DEADZONE && reportBuffer.x <= DEADZONE)
-	{
+	if (reportBuffer.x >= -DEADZONE && reportBuffer.x <= DEADZONE){
 		reportBuffer.x = 0;
 	}
-	if (reportBuffer.y >= -DEADZONE && reportBuffer.y <= DEADZONE)
-	{
+	if (reportBuffer.y >= -DEADZONE && reportBuffer.y <= DEADZONE){
 		reportBuffer.y = 0;
 	}
-	if (reportBuffer.rx >= -DEADZONE && reportBuffer.rx <= DEADZONE)
-	{
+	if (reportBuffer.rx >= -DEADZONE && reportBuffer.rx <= DEADZONE){
 		reportBuffer.rx = 0;
 	}
-	if (reportBuffer.ry >= -DEADZONE && reportBuffer.ry <= DEADZONE)
-	{
+	if (reportBuffer.ry >= -DEADZONE && reportBuffer.ry <= DEADZONE){
 		reportBuffer.ry = 0;
 	}
-	if (calibrated)
-	{
-		if (reportBuffer.x > 0)
-		{
-			reportBuffer.x = (char) (map(reportBuffer.x, 1, maxx, 1, 127));
+
+
+	if (calibrated){
+
+		if (reportBuffer.x !=0){
+			//clamp variable
+			if (reportBuffer.x>maxx){
+				reportBuffer.x=maxx;
+			}else if (reportBuffer.x<minx){
+				reportBuffer.x=minx;
+			}
+			//convert to range
+			if (reportBuffer.x > 0){
+				reportBuffer.x = (char) (map(reportBuffer.x, 1, maxx, 1, 127));
+			}else{
+				reportBuffer.x = (char) (map(reportBuffer.x, minx, 1, -127, -1));
+			}
 		}
-		if (reportBuffer.x < 0)
-		{
-			reportBuffer.x = (char) (map(reportBuffer.x, minx, 1, -127, -1));
+
+		if (reportBuffer.y != 0){
+			//clamp variable
+			if (reportBuffer.y>maxy){
+				reportBuffer.y=maxy;
+			}else if (reportBuffer.y<miny){
+				reportBuffer.y=miny;
+			}
+			//convert to range
+			if (reportBuffer.y > 0){
+				reportBuffer.y = (char) (map(reportBuffer.y, 1, maxy, 1, 127));
+			}else{
+				reportBuffer.y = (char) (map(reportBuffer.y, miny, 1, -127, -1));
+			}
 		}
-		if (reportBuffer.y > 0)
-		{
-			reportBuffer.y = (char) (map(reportBuffer.y, 1, maxy, 1, 127));
+
+		if (reportBuffer.rx != 0){
+
+			//clamp variable
+			if (reportBuffer.rx>maxrx){
+				reportBuffer.rx=maxrx;
+			}else if (reportBuffer.rx<minrx){
+				reportBuffer.rx=minrx;
+			}
+			//convert to range
+			if (reportBuffer.rx > 0){
+				reportBuffer.rx = (char) (map(reportBuffer.rx, 1, maxrx, 1, 127));
+			}else{
+				reportBuffer.rx = (char) (map(reportBuffer.rx, minrx, 1, -127, -1));
+			}
 		}
-		if (reportBuffer.y < 0)
-		{
-			reportBuffer.y = (char) (map(reportBuffer.y, miny, 1, -127, -1));
+
+		if (reportBuffer.ry != 0){
+			//clamp variable
+			if (reportBuffer.ry>maxry){
+				reportBuffer.ry=maxry;
+			} else 	if (reportBuffer.ry<minry){
+				reportBuffer.ry=minry;
+			}
+			//convert to range
+			if (reportBuffer.ry > 0){
+				reportBuffer.ry = (char) (map(reportBuffer.ry, 1, maxry, 1, 127));
+			}else{
+				reportBuffer.ry = (char) (map(reportBuffer.ry, minry, 1, -127, -1));
+			}
 		}
-		if (reportBuffer.rx > 0)
-		{
-			reportBuffer.rx = (char) (map(reportBuffer.rx, 1, maxrx, 1, 127));
-		}
-		if (reportBuffer.rx < 0)
-		{
-			reportBuffer.rx = (char) (map(reportBuffer.rx, minrx, 1, -127, -1));
-		}
-		if (reportBuffer.ry > 0)
-		{
-			reportBuffer.ry = (char) (map(reportBuffer.ry, 1, maxry, 1, 127));
-		}
-		if (reportBuffer.ry < 0)
-		{
-			reportBuffer.ry = (char) (map(reportBuffer.ry, minry, 1, -127, -1));
-		}
+
 	}
 }
 
