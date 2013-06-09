@@ -13,6 +13,7 @@
 #include <limits.h>
 #include <avr/sleep.h>
 #include <avr/power.h>
+#include <avr/eeprom.h>
 
 extern "C" {
 #include "report.h"
@@ -25,6 +26,8 @@ extern "C" {
 
 #define LED1 PB6
 #define LED2 PB7
+
+#define EEPROM_MAGIC_NUMBER 20
 
 static	report_t reportBuffer;
 
@@ -67,7 +70,7 @@ void convertAxes();
 void sendData(bool askforStatus,RF24 & radio);
 
 
-int maxy=INT_MIN,miny=INT_MAX,minx=INT_MAX,maxx=INT_MIN,minrx=INT_MAX,maxrx=INT_MIN,minry=INT_MAX,maxry=INT_MIN;
+char maxy=CHAR_MIN,miny=CHAR_MAX,minx=CHAR_MAX,maxx=CHAR_MIN,minrx=CHAR_MAX,maxrx=CHAR_MIN,minry=CHAR_MAX,maxry=CHAR_MIN;
 bool calibrated = false;
 
 int main (){
@@ -77,7 +80,7 @@ int main (){
 
 	RF24 radio = RF24();
 	// Radio pipe addresses for the 2 nodes to communicate.
-	const uint64_t pipes[2] = { 0xF0F0F0F0E1LL, 0xF0F0F0F0D2LL };
+	const uint64_t pipes[2] = { 0xF0F0F0F0BELL, 0xF0F0F0F0EFLL };
 
 	setup_watchdog(wdt_64ms);
 
@@ -85,6 +88,8 @@ int main (){
 	// Setup and configure rf radio
 	//
 	radio.begin();
+
+	radio.setChannel(100);
 
 	// optionally, increase the delay between retries & # of retries
 	radio.setRetries(15,15);
@@ -101,6 +106,30 @@ int main (){
 
 	//unsigned long  pa = 0;
 	uint8_t counter = 0;
+
+
+	//check eeprom
+	if (eeprom_read_byte(0)==EEPROM_MAGIC_NUMBER){
+		minx=(char)eeprom_read_byte((uint8_t*)1);
+		maxx=(char)eeprom_read_byte((uint8_t*)2);
+		miny=(char)eeprom_read_byte((uint8_t*)3);
+		maxy=(char)eeprom_read_byte((uint8_t*)4);
+		minrx=(char)eeprom_read_byte((uint8_t*)5);
+		maxrx=(char)eeprom_read_byte((uint8_t*)6);
+		minry=(char)eeprom_read_byte((uint8_t*)7);
+		maxry=(char)eeprom_read_byte((uint8_t*)8);
+		calibrated=true;
+
+#ifdef DEBUG
+		print_string("read eeprom magic number");
+		char temp[100];
+		sprintf(temp,"minx:%d maxx:%d minry:%d maxry:%d \n",minx,maxx,minry,maxry);
+		print_string(temp);
+		_delay_ms(2000);
+#endif
+
+	}
+
 
 	while(1){
 
@@ -209,43 +238,58 @@ void calibrate()
 		if (START_PRESSED)
 			break;
 
-		if ((int) reportBuffer.x > maxx)
+		if (reportBuffer.x > maxx)
 		{
-			maxx = (int) reportBuffer.x;
+			maxx = reportBuffer.x;
 		}
-		if ((int) reportBuffer.rx > maxrx)
+		if (reportBuffer.rx > maxrx)
 		{
-			maxrx = (int) reportBuffer.rx;
+			maxrx =  reportBuffer.rx;
 		}
-		if ((int) reportBuffer.y > maxy)
+		if ( reportBuffer.y > maxy)
 		{
-			maxy = (int) reportBuffer.y;
+			maxy =  reportBuffer.y;
 		}
-		if ((int) reportBuffer.ry > maxry)
+		if ( reportBuffer.ry > maxry)
 		{
-			maxry = (int) reportBuffer.ry;
+			maxry =  reportBuffer.ry;
 		}
-		if ((int) reportBuffer.x < minx)
+		if ( reportBuffer.x < minx)
 		{
-			minx = (int) reportBuffer.x;
+			minx =  reportBuffer.x;
 		}
-		if ((int) reportBuffer.rx < minrx)
+		if ( reportBuffer.rx < minrx)
 		{
-			minrx = (int) reportBuffer.rx;
+			minrx =  reportBuffer.rx;
 		}
-		if ((int) reportBuffer.y < miny)
+		if ( reportBuffer.y < miny)
 		{
-			miny = (int) reportBuffer.y;
+			miny =  reportBuffer.y;
 		}
-		if ((int) reportBuffer.ry < minry)
+		if ( reportBuffer.ry < minry)
 		{
-			minry = (int) reportBuffer.ry;
+			minry =  reportBuffer.ry;
 		}
 
 		PORTD ^= (1 << LED2);
 		_delay_ms(64);
 	}
 	calibrated = true;
+
+	if (eeprom_read_byte(0)!=EEPROM_MAGIC_NUMBER){
+		eeprom_write_byte(0,EEPROM_MAGIC_NUMBER);
+	}
+	eeprom_write_byte((uint8_t*)1,(uint8_t)minx);
+	eeprom_write_byte((uint8_t*)2,(uint8_t)maxx);
+	eeprom_write_byte((uint8_t*)3,(uint8_t)miny);
+	eeprom_write_byte((uint8_t*)4,(uint8_t)maxy);
+	eeprom_write_byte((uint8_t*)5,(uint8_t)minrx);
+	eeprom_write_byte((uint8_t*)6,(uint8_t)maxrx);
+	eeprom_write_byte((uint8_t*)7,(uint8_t)minry);
+	eeprom_write_byte((uint8_t*)8,(uint8_t)maxry);
+	calibrated=true;
+
+
 	PORTD &= ~(1 << LED2);
 	PORTD &= ~(1 << LED1);
 }
