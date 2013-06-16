@@ -383,6 +383,8 @@ inline void sendData(bool askforStatus,RF24 & radio){
 #ifdef DEBUG
 		print_string("pa error\n");
 #endif
+		radio.startListening();
+		radio.stopListening();
 		return;
 	}
 
