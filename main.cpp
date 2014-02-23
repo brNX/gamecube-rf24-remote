@@ -73,6 +73,11 @@ void sendData(bool askforStatus,RF24 & radio);
 char maxy=CHAR_MIN,miny=CHAR_MAX,minx=CHAR_MAX,maxx=CHAR_MIN,minrx=CHAR_MAX,maxrx=CHAR_MIN,minry=CHAR_MAX,maxry=CHAR_MIN;
 bool calibrated = false;
 
+long map(long x, long in_min, long in_max, long out_min, long out_max) {
+	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
+
 int main (){
 
 
@@ -134,10 +139,16 @@ int main (){
 	while(1){
 
 		ReadController();
+#ifdef DEBUG
+		char temp[100];
+		print_string("before convert\n");
+		sprintf(temp,"hat:%u x:%d y:%d rx:%d ry:%d b1:%u b2:%u\n",reportBuffer.hat,(int8_t)reportBuffer.x,(int8_t)reportBuffer.y,(int8_t)reportBuffer.rx,(int8_t)reportBuffer.ry,reportBuffer.b1,reportBuffer.b2);
+		print_string(temp);
+#endif
+
 		convertAxes();
 
 #ifdef DEBUG
-		char temp[100];
 		sprintf(temp,"hat:%u x:%d y:%d rx:%d ry:%d b1:%u b2:%u\n",reportBuffer.hat,(int8_t)reportBuffer.x,(int8_t)reportBuffer.y,(int8_t)reportBuffer.rx,(int8_t)reportBuffer.ry,reportBuffer.b1,reportBuffer.b2);
 		print_string(temp);
 #endif
@@ -201,11 +212,6 @@ inline void ReadController(){
 	ReadN64GC(&reportBuffer);
 }
 
-long map(long x, long in_min, long in_max, long out_min, long out_max)
-{
-	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
-
 
 void HardwareInit(){
 
@@ -232,6 +238,16 @@ void calibrate()
 #endif
 	PORTD |= (1 << LED2);
 	PORTD |= (1 << LED1);
+
+	maxx=0;
+	minx=255;
+	maxy=0;
+	miny=255;
+	maxrx=0;
+	minrx=255;
+	maxry=0;
+	minry=255;
+
 	while (1)
 	{
 		ReadController();
@@ -289,6 +305,13 @@ void calibrate()
 	eeprom_write_byte((uint8_t*)8,(uint8_t)maxry);
 	calibrated=true;
 
+#ifdef DEBUG
+		char temp[100];
+		sprintf(temp,"min:%d %d max:%d %d minr;%d %d maxr: %d %d\n",minx,miny,maxx,maxy,minrx,minry,maxrx,maxry);
+		print_string(temp);
+#endif
+
+
 
 	PORTD &= ~(1 << LED2);
 	PORTD &= ~(1 << LED1);
@@ -324,9 +347,9 @@ inline void convertAxes()
 			reportBuffer.x = clamp(reportBuffer.x,minx,maxx);
 			//convert to range
 			if (reportBuffer.x > 0){
-				reportBuffer.x = (char) (map(reportBuffer.x, 1, maxx, 1, 127));
+				reportBuffer.x = (char) (map(reportBuffer.x, DEADZONE, maxx, 1, 127));
 			}else{
-				reportBuffer.x = (char) (map(reportBuffer.x, minx, 1, -127, -1));
+				reportBuffer.x = (char) (map(reportBuffer.x, minx, -DEADZONE, -127, -1));
 			}
 		}
 
@@ -336,9 +359,9 @@ inline void convertAxes()
 
 			//convert to range
 			if (reportBuffer.y > 0){
-				reportBuffer.y = (char) (map(reportBuffer.y, 1, maxy, 1, 127));
+				reportBuffer.y = (char) (map(reportBuffer.y, DEADZONE, maxy, 1, 127));
 			}else{
-				reportBuffer.y = (char) (map(reportBuffer.y, miny, 1, -127, -1));
+				reportBuffer.y = (char) (map(reportBuffer.y, miny, -DEADZONE, -127, -1));
 			}
 		}
 
@@ -348,9 +371,9 @@ inline void convertAxes()
 
 			//convert to range
 			if (reportBuffer.rx > 0){
-				reportBuffer.rx = (char) (map(reportBuffer.rx, 1, maxrx, 1, 127));
+				reportBuffer.rx = (char) (map(reportBuffer.rx, DEADZONE, maxrx, 1, 127));
 			}else{
-				reportBuffer.rx = (char) (map(reportBuffer.rx, minrx, 1, -127, -1));
+				reportBuffer.rx = (char) (map(reportBuffer.rx, minrx, -DEADZONE, -127, -1));
 			}
 		}
 
@@ -360,9 +383,9 @@ inline void convertAxes()
 
 			//convert to range
 			if (reportBuffer.ry > 0){
-				reportBuffer.ry = (char) (map(reportBuffer.ry, 1, maxry, 1, 127));
+				reportBuffer.ry = (char) (map(reportBuffer.ry, DEADZONE, maxry, 1, 127));
 			}else{
-				reportBuffer.ry = (char) (map(reportBuffer.ry, minry, 1, -127, -1));
+				reportBuffer.ry = (char) (map(reportBuffer.ry, minry, -DEADZONE, -127, -1));
 			}
 		}
 
